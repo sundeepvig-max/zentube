@@ -249,14 +249,15 @@
                                 <h2 className="text-sm md:text-lg font-bold tracking-tight text-white drop-shadow-md pointer-events-auto opacity-70">Zen<span className="text-indigo-400">Tube</span></h2>
                             </div>
                             
-                            {/* Isolated Nocookie Override Frame */}
+                            {/* Strict Anti-Redirect Sandboxed Piped Player */}
                             <div className="flex-1 w-full bg-black mt-0">
                                 <iframe 
                                     className="w-full h-full border-none bg-black"
-                                    src={`https://www.youtube-nocookie.com/embed/${activeId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&color=white&playsinline=1&enablejsapi=1`}
-                                    allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                                    src={`https://piped.video/embed/${activeId}`}
+                                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                     allowFullScreen
-                                    title="ZenTube Player"
+                                    title="ZenTube Video Player"
                                 ></iframe>
                             </div>
                         </div>
