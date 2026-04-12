@@ -252,10 +252,11 @@
                             {/* Isolated Nocookie Override Frame */}
                             <div className="flex-1 w-full bg-black mt-0">
                                 <iframe 
-                                    className="w-full h-full border-none"
-                                    src={`https://www.youtube-nocookie.com/embed/${activeId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&color=white&playsinline=1`}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    className="w-full h-full border-none bg-black"
+                                    src={`https://www.youtube-nocookie.com/embed/${activeId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&color=white&playsinline=1&enablejsapi=1`}
+                                    allow="accelerometer; autoplay *; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                                     allowFullScreen
+                                    title="ZenTube Player"
                                 ></iframe>
                             </div>
                         </div>
