@@ -81,6 +81,7 @@
             const [results, setResults] = useState([]);
             const [isLoading, setIsLoading] = useState(false);
             const [activeId, setActiveId] = useState(null);
+            const [showScrollTop, setShowScrollTop] = useState(false);
 
             // Native PWA Navigation (Physical Back Button support)
             useEffect(() => {
@@ -88,6 +89,15 @@
                 window.addEventListener('popstate', handlePopState);
                 return () => window.removeEventListener('popstate', handlePopState);
             }, []);
+
+            // Scroll detector for FAB
+            useEffect(() => {
+                const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
             const playVideo = (id) => {
                 window.history.pushState({ playing: true }, "", `#watch=${id}`);
@@ -249,18 +259,28 @@
                                 <h2 className="text-sm md:text-lg font-bold tracking-tight text-white drop-shadow-md pointer-events-auto opacity-70">Zen<span className="text-indigo-400">Tube</span></h2>
                             </div>
                             
-                            {/* Strict Anti-Redirect Sandboxed Piped Player */}
+                            {/* Isolated Nocookie Override Frame (Guaranteed Uptime) */}
                             <div className="flex-1 w-full bg-black mt-0">
                                 <iframe 
                                     className="w-full h-full border-none bg-black"
-                                    src={`https://piped.video/embed/${activeId}`}
-                                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                                    src={`https://www.youtube-nocookie.com/embed/${activeId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&color=white&playsinline=1`}
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                     allowFullScreen
-                                    title="ZenTube Video Player"
+                                    title="ZenTube Player"
                                 ></iframe>
                             </div>
                         </div>
+                    )}
+
+                    {/* Scroll to Top FAB */}
+                    {showScrollTop && (
+                        <button 
+                            onClick={scrollToTop}
+                            className="fixed bottom-6 right-6 w-12 h-12 bg-indigo-600/90 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-[0_0_15px_rgba(79,70,229,0.5)] hover:bg-indigo-500 transition-all z-40 active:scale-95"
+                            aria-label="Scroll to top"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
                     )}
                 </div>
             );
