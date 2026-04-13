@@ -83,6 +83,19 @@
             const [activeId, setActiveId] = useState(null);
             const [showScrollTop, setShowScrollTop] = useState(false);
 
+            // Persistent Search History Engine
+            const [searchHistory, setSearchHistory] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('zentube_history');
+                    return saved ? JSON.parse(saved) : [];
+                } catch { return []; }
+            });
+
+            // Automatically sync History to device
+            useEffect(() => {
+                localStorage.setItem('zentube_history', JSON.stringify(searchHistory));
+            }, [searchHistory]);
+
             // Native PWA Navigation (Physical Back Button support)
             useEffect(() => {
                 const handlePopState = () => setActiveId(null);
@@ -154,12 +167,28 @@
 
             const handleSubmit = (e) => {
                 e.preventDefault();
-                performSearch(query);
+                const safeQuery = query.trim();
+                if (!safeQuery) return;
+                
+                // Add to history (keeping only the 8 most recent unique searches)
+                setSearchHistory(prev => {
+                    const filtered = prev.filter(q => q.toLowerCase() !== safeQuery.toLowerCase());
+                    return [safeQuery, ...filtered].slice(0, 8);
+                });
+
+                performSearch(safeQuery);
             };
 
-            // On initial load, grab trending videos
+            // On initial load, generate a personalized algorithmic feed
             useEffect(() => {
-                performSearch("trending viral topics");
+                const history = JSON.parse(localStorage.getItem('zentube_history') || '[]');
+                if (history && history.length > 0) {
+                    // Pick a random recent search to build the "For You" feed
+                    const focusTerm = history[Math.floor(Math.random() * Math.min(4, history.length))];
+                    performSearch(focusTerm + " recommended videos");
+                } else {
+                    performSearch("trending viral topics");
+                }
             }, []);
 
             return (
@@ -192,6 +221,25 @@
                                 <svg className="w-5 h-5 absolute left-4 top-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </form>
                         </div>
+                        
+                        {/* Search History PWA Chips */}
+                        {searchHistory.length > 0 && !isLoading && (
+                            <div className="flex flex-wrap items-center gap-2 mb-8 px-1 animation-fade-in">
+                                <span className="text-xs text-gray-500 font-bold mr-1 uppercase tracking-wider flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Recent:
+                                </span>
+                                {searchHistory.map((term, i) => (
+                                    <button 
+                                        key={i}
+                                        onClick={() => { setQuery(term); performSearch(term); }}
+                                        className="text-xs bg-white/5 hover:bg-indigo-500/20 text-gray-300 px-4 py-2 rounded-full border border-white/10 hover:border-indigo-500/50 transition-all font-medium active:scale-95"
+                                    >
+                                        {term}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Search Feedback Spinner */}
                         {isLoading && (
