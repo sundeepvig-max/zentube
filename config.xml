@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://sundeep.com/ZenTube" version="1.0.0" viewmodes="maximized">
+    <name>ZenTube</name>
+    <description>Serverless Ad-Free Video Player natively mapped to Samsung Tizen OS.</description>
+    <!-- Basic Tizen App Identifier Definition -->
+    <tizen:application id="ZENTUBE123.ZenTube" package="ZENTUBE123" required_version="2.3"/>
+    
+    <!-- Entry point declaration -->
+    <content src="index.html"/>
+    
+    <!-- Enforce high-res scaling mapping -->
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    
+    <!-- Absolute critical privilege: required to allow the JS fetch proxy to run -->
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    
+    <!-- TV-specific profile targeting -->
+    <tizen:profile name="tv"/>
+    
+    <!-- Security declarations for embedded iframe player access -->
+    <access origin="*" subdomains="true"></access>
+</widget>
