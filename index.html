@@ -196,7 +196,15 @@
                     <div className="w-full max-w-7xl px-4 pt-6">
                         {/* Header NavBar */}
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
-                            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => performSearch("trending topics")}>
+                            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => {
+                                setQuery(""); // Reset the search box visually
+                                const history = JSON.parse(localStorage.getItem('zentube_history') || '[]');
+                                if (history && history.length > 0) {
+                                    performSearch(history[Math.floor(Math.random() * Math.min(4, history.length))] + " recommended videos");
+                                } else {
+                                    performSearch("trending topics");
+                                }
+                            }}>
                                 {/* Fancy Animated App Icon */}
                                 <div className="relative w-12 h-12 flex items-center justify-center">
                                     <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-500"></div>
