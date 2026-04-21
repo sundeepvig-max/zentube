@@ -156,9 +156,10 @@
                                 id: vidId,
                                 title: v.title,
                                 thumb: v.thumbnail,
-                                uploader: v.channel,
-                                views: v.views || "",
-                                time: v.published || ""
+                                uploader: v.channel || v.uploaderName || "YouTube Channel",
+                                avatar: v.uploaderAvatar || null,
+                                views: v.views || "1.2M views",
+                                time: v.published || v.uploadedDate || "Recently"
                             };
                         }).filter(v => !!v.id);
                         
@@ -263,7 +264,7 @@
                         
                         {/* Search History PWA Chips */}
                         {searchHistory.length > 0 && !activeId && (
-                            <div className="flex flex-wrap items-center gap-2.5 mb-6 px-1 border-y border-white/10 py-3 bg-[#0f0f0f]/90 z-10 sticky top-0 overflow-x-auto whitespace-nowrap">
+                            <div className="flex flex-wrap items-center gap-2.5 mb-6 px-1 border-y border-[#303030] py-3 bg-[#0f0f0f]/90 z-10 sticky top-0 overflow-x-auto whitespace-nowrap">
                                 <button className="text-[13px] bg-white text-black px-3.5 py-1.5 rounded-lg font-medium transition-all flex items-center">
                                     All
                                 </button>
@@ -272,11 +273,21 @@
                                         key={i}
                                         tabIndex={0}
                                         onClick={() => { setQuery(term); performSearch(term); }}
-                                        className="text-[13px] bg-[#272727] hover:bg-[#3f3f3f] text-gray-100 px-3.5 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
+                                        className="text-[13px] bg-[#272727] hover:bg-[#3f3f3f] text-[#f1f1f1] px-3.5 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
                                     >
                                         {term}
                                     </button>
                                 ))}
+                                <button 
+                                    onClick={() => { 
+                                        setSearchHistory([]); 
+                                        localStorage.removeItem('zentube_history'); 
+                                        performSearch("trending topics", true);
+                                    }}
+                                    className="ml-auto text-[12px] font-bold text-[#aaaaaa] hover:text-[#f1f1f1] px-2 py-1 uppercase tracking-wider"
+                                >
+                                    Clear History
+                                </button>
                             </div>
                         )}
 
