@@ -11,7 +11,7 @@
             darkMode: 'class',
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -19,7 +19,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        body { font-family: 'Outfit', sans-serif; overflow-x: hidden; margin: 0; }
+        body { font-family: 'Roboto', Arial, sans-serif; overflow-x: hidden; margin: 0; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -92,7 +92,9 @@
                     return cached ? JSON.parse(cached) : [];
                 } catch { return []; }
             });
+            });
             const [isLoading, setIsLoading] = useState(false);
+            const [isAppending, setIsAppending] = useState(false);
             const [activeId, setActiveId] = useState(null);
             const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -143,6 +145,46 @@
                 return () => window.removeEventListener('popstate', handlePopState);
             }, []);
 
+            // Infinite Scroll Pagination Engine
+            useEffect(() => {
+                let timeoutId = null;
+                const handleScroll = () => {
+                    // Trigger fetch 600px before exactly bottoming out
+                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 600) {
+                        if (!isLoading && !isAppending && results.length > 0) {
+                            if (timeoutId) clearTimeout(timeoutId);
+                            timeoutId = setTimeout(() => {
+                                loadMore();
+                            }, 50); // slight debounce
+                        }
+                    }
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    if (timeoutId) clearTimeout(timeoutId);
+                };
+            }, [isLoading, isAppending, results, query]);
+
+            const loadMore = () => {
+                if (results.length === 0) return;
+                setIsAppending(true);
+                
+                // YouTube algorithmic "rabbit-hole" suffix heuristic
+                const semanticModifier = ["more", "related", "viral", "top", "trending", "part 2", "latest", "explained", "highlights"][Math.floor(Math.random() * 9)];
+                
+                let searchTarget = "";
+                if (query.trim()) {
+                    searchTarget = `${query} ${semanticModifier}`;
+                } else {
+                     // Dig deeper into the active loaded content grid to spider relevant related videos dynamically!
+                     const randomHit = results[Math.floor(Math.random() * results.length)];
+                     searchTarget = `${randomHit.uploader} ${semanticModifier}`;
+                }
+                
+                performSearch(searchTarget, true, true);
+            };
+
             // Scroll detector for FAB
             useEffect(() => {
                 const handleScroll = () => setShowScrollTop(window.scrollY > 400);
@@ -163,12 +205,12 @@
             };
 
             // Fetch natively inside browser via Render Cloud Proxy
-            const performSearch = async (searchQuery, isBackground = false) => {
+            const performSearch = async (searchQuery, isBackground = false, isAppend = false) => {
                 if (!searchQuery.trim()) return;
                 
                 // Show traditional spinner only if it's not a silky background request or if cache is empty
-                if (!isBackground || results.length === 0) setIsLoading(true);
-                if (!isBackground) setResults([]);
+                if (!isBackground && !isAppend) setIsLoading(true);
+                if (!isBackground && !isAppend) setResults([]);
 
                 try {
                     const targetUrl = `https://litetube-z0xx.onrender.com/api/search?q=${encodeURIComponent(searchQuery)}`;
@@ -197,13 +239,24 @@
                             };
                         }).filter(v => !!v.id);
                         
-                        setResults(mappedData);
+                        if (isAppend) {
+                            setResults(prev => {
+                                const combined = [...prev, ...mappedData];
+                                const unique = new Set();
+                                return combined.filter(v => {
+                                    if(!unique.has(v.id)) { unique.add(v.id); return true; }
+                                    return false;
+                                });
+                            });
+                        } else {
+                            setResults(mappedData);
+                        }
                         
-                        // Hydrate Initial Load Cache
-                        if (isBackground) {
+                        // Hydrate Initial Load Cache only for top-level root updates
+                        if (isBackground && !isAppend) {
                             localStorage.setItem('zentube_home_cache', JSON.stringify(mappedData));
                         }
-                    } else if (!isBackground) {
+                    } else if (!isBackground && !isAppend) {
                         alert("No results found. Please try a different search term.");
                     }
                 } catch (err) {
@@ -214,6 +267,7 @@
                 }
                 
                 setIsLoading(false);
+                setIsAppending(false);
             };
 
             const handleSubmit = (e) => {
@@ -383,6 +437,13 @@
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                        
+                        {/* Infinite Scroll Appending UI Spinner */}
+                        {isAppending && (
+                            <div className="w-full flex items-center justify-center py-6 mt-10 border-t border-[#e5e5e5] dark:border-[#303030]">
+                                <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             </div>
                         )}
                         
