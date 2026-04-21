@@ -227,13 +227,25 @@
                                 vidId = v.videoId;
                             }
                             
+                            // YouTube View Formatter (1,234,567 -> 1.2M views)
+                            let parsedViews = v.views || "1.2M views";
+                            if (parsedViews && !parsedViews.includes("K") && !parsedViews.includes("M") && !parsedViews.includes("B")) {
+                                const rawNum = parseInt(parsedViews.replace(/,/g, ''), 10);
+                                if (!isNaN(rawNum)) {
+                                    parsedViews = Intl.NumberFormat('en-US', {
+                                        notation: "compact",
+                                        maximumFractionDigits: 1
+                                    }).format(rawNum) + (parsedViews.includes('views') ? '' : ' views');
+                                }
+                            }
+                            
                             return {
                                 id: vidId,
                                 title: v.title,
                                 thumb: v.thumbnail,
                                 uploader: v.channel || v.uploaderName || "YouTube Channel",
                                 avatar: v.uploaderAvatar || null,
-                                views: v.views || "1.2M views",
+                                views: parsedViews,
                                 time: v.published || v.uploadedDate || "Recently"
                             };
                         }).filter(v => !!v.id);
