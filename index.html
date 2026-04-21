@@ -6,6 +6,11 @@
     <title>ZenTube | Pure Ad-Free Video Player</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <!-- React & Babel -->
@@ -14,14 +19,13 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        body { font-family: 'Outfit', sans-serif; background-color: #0f0f11; color: white; overflow-x: hidden; margin: 0; }
-        .glass { background: rgba(30, 30, 35, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        body { font-family: 'Outfit', sans-serif; overflow-x: hidden; margin: 0; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .bg-animated { background: radial-gradient(circle at top right, #1e1b4b 0%, #000000 100%); background-attachment: fixed; }
     </style>
 </head>
-<body class="bg-animated min-h-screen">
+<body class="min-h-screen bg-[#f9f9f9] dark:bg-[#0f0f0f] text-[#0f0f0f] dark:text-[#f1f1f1] transition-colors duration-300">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -78,6 +82,9 @@
 
         const App = () => {
             const [query, setQuery] = useState("");
+            
+            // Theme State Engine (Light | Dark | Auto)
+            const [themeMode, setThemeMode] = useState(() => localStorage.getItem('zentube_theme') || 'auto');
             // Stale-While-Revalidate: Load Instant Cached Homepage
             const [results, setResults] = useState(() => {
                 try {
@@ -88,6 +95,33 @@
             const [isLoading, setIsLoading] = useState(false);
             const [activeId, setActiveId] = useState(null);
             const [showScrollTop, setShowScrollTop] = useState(false);
+
+            // Auto-Sync HTML Class with Theme Preference
+            useEffect(() => {
+                const root = document.documentElement;
+                if (themeMode === 'dark') {
+                    root.classList.add('dark');
+                } else if (themeMode === 'light') {
+                    root.classList.remove('dark');
+                } else {
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) root.classList.add('dark');
+                    else root.classList.remove('dark');
+                }
+                localStorage.setItem('zentube_theme', themeMode);
+            }, [themeMode]);
+
+            // Realtime Auto OS Sync Event Listener
+            useEffect(() => {
+                const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                const handleChange = (e) => {
+                    if (themeMode === 'auto') {
+                        if (e.matches) document.documentElement.classList.add('dark');
+                        else document.documentElement.classList.remove('dark');
+                    }
+                };
+                mediaQuery.addEventListener('change', handleChange);
+                return () => mediaQuery.removeEventListener('change', handleChange);
+            }, [themeMode]);
 
             // Persistent Search History Engine
             const [searchHistory, setSearchHistory] = useState(() => {
@@ -208,7 +242,7 @@
             }, []);
 
             return (
-                <div className="w-full flex justify-center pb-20 bg-[#0f0f0f] min-h-screen">
+                <div className="w-full flex justify-center pb-20 bg-[#f9f9f9] dark:bg-[#0f0f0f] min-h-screen transition-colors duration-300">
                     <div className="w-full max-w-7xl px-4 pt-3 md:pt-4">
                         {/* Header NavBar YouTube Layout */}
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
@@ -232,40 +266,45 @@
                                 <div className="flex items-center justify-center -ml-1">
                                     <svg className="w-10 h-10 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
                                 </div>
-                                <h1 className="text-[22px] font-semibold tracking-tighter text-white font-sans opacity-95">ZenTube</h1>
+                                <h1 className="text-[22px] font-semibold tracking-tighter text-[#0f0f0f] dark:text-white font-sans opacity-95">ZenTube</h1>
                             </div>
                             
                             {/* YouTube Standard Pill Search Bar */}
                             <form onSubmit={handleSubmit} className="flex w-full md:w-[600px] h-10 lg:ml-20">
-                                <div className="flex-grow flex items-center border border-[#303030] bg-[#121212] rounded-l-full overflow-hidden focus-within:border-[#1c62b9] ml-8 ml-0">
+                                <div className="flex-grow flex items-center border border-[#cccccc] dark:border-[#303030] bg-white dark:bg-[#121212] rounded-l-full overflow-hidden focus-within:border-[#1c62b9] ml-8 ml-0">
                                     <div className="pl-4 hidden md:block">
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                     </div>
                                     <input 
                                         type="text" 
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
                                         placeholder="Search" 
-                                        className="w-full h-full bg-transparent px-3 text-white placeholder-[#888888] focus:outline-none font-sans text-base"
+                                        className="w-full h-full bg-transparent px-3 text-[#0f0f0f] dark:text-white placeholder-gray-500 dark:placeholder-[#888888] focus:outline-none font-sans text-base"
                                     />
                                 </div>
-                                <button type="submit" className="bg-[#222222] border border-l-0 border-[#303030] rounded-r-full px-5 hover:bg-[#303030] transition flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <button type="submit" className="bg-[#f8f8f8] dark:bg-[#222222] border border-l-0 border-[#cccccc] dark:border-[#303030] rounded-r-full px-5 hover:bg-[#e0e0e0] dark:hover:bg-[#303030] transition flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-gray-600 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                 </button>
-                                <div className="ml-4 w-10 h-10 rounded-full bg-[#181818] hidden sm:flex items-center justify-center hover:bg-[#303030] cursor-pointer">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>
+                                
+                                {/* Theme Selector Dropdown */}
+                                <div className="ml-4 flex items-center justify-center">
+                                    <select 
+                                        value={themeMode} 
+                                        onChange={(e) => setThemeMode(e.target.value)}
+                                        className="h-10 px-3 py-1 cursor-pointer rounded-full bg-[#f8f8f8] dark:bg-[#181818] border border-[#cccccc] dark:border-[#303030] text-[13px] text-gray-700 dark:text-white focus:outline-none hover:bg-[#e0e0e0] dark:hover:bg-[#303030] transition font-medium appearance-none"
+                                    >
+                                        <option value="auto">System</option>
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark</option>
+                                    </select>
                                 </div>
                             </form>
-                            
-                            <div className="hidden md:flex gap-4 items-center pl-4">
-                                <div className="w-8 h-8 rounded-full bg-[#cc0000] text-sm flex items-center justify-center font-bold text-white shadow-sm ring-2 ring-[#0f0f0f] cursor-pointer">Z</div>
-                            </div>
-                        </div>
                         
                         {/* Search History PWA Chips */}
                         {searchHistory.length > 0 && !activeId && (
-                            <div className="flex flex-wrap items-center gap-2.5 mb-6 px-1 border-y border-[#303030] py-3 bg-[#0f0f0f]/90 z-10 sticky top-0 overflow-x-auto whitespace-nowrap">
-                                <button className="text-[13px] bg-white text-black px-3.5 py-1.5 rounded-lg font-medium transition-all flex items-center">
+                            <div className="flex flex-wrap items-center gap-2.5 mb-6 px-1 border-y border-[#e5e5e5] dark:border-[#303030] py-3 bg-[#f9f9f9]/90 dark:bg-[#0f0f0f]/90 z-10 sticky top-0 overflow-x-auto whitespace-nowrap">
+                                <button className="text-[13px] bg-black dark:bg-white text-white dark:text-black px-3.5 py-1.5 rounded-lg font-medium transition-all flex items-center">
                                     All
                                 </button>
                                 {searchHistory.map((term, i) => (
@@ -273,7 +312,7 @@
                                         key={i}
                                         tabIndex={0}
                                         onClick={() => { setQuery(term); performSearch(term); }}
-                                        className="text-[13px] bg-[#272727] hover:bg-[#3f3f3f] text-[#f1f1f1] px-3.5 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
+                                        className="text-[13px] bg-[#0000000d] dark:bg-[#272727] hover:bg-[#0000001a] dark:hover:bg-[#3f3f3f] text-[#0f0f0f] dark:text-[#f1f1f1] px-3.5 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
                                     >
                                         {term}
                                     </button>
@@ -284,18 +323,18 @@
                                         localStorage.removeItem('zentube_history'); 
                                         performSearch("trending topics", true);
                                     }}
-                                    className="ml-auto text-[12px] font-bold text-[#aaaaaa] hover:text-[#f1f1f1] px-2 py-1 uppercase tracking-wider"
+                                    className="ml-auto text-[12px] font-bold text-red-600 dark:text-[#aaaaaa] hover:text-red-500 dark:hover:text-[#f1f1f1] px-2 py-1 uppercase tracking-wider transition-colors"
                                 >
-                                    Clear History
+                                    Clear
                                 </button>
                             </div>
                         )}
 
                         {/* Search Feedback Spinner for Background Loads */}
                         {isLoading && results.length > 0 && (
-                            <div className="fixed top-2 right-1/2 translate-x-1/2 z-50 bg-[#121212] border border-[#303030] rounded-full px-4 py-1.5 flex items-center gap-2 shadow-xl opacity-90">
+                            <div className="fixed top-2 right-1/2 translate-x-1/2 z-50 bg-[#ffffff] dark:bg-[#121212] border border-[#cccccc] dark:border-[#303030] rounded-full px-4 py-1.5 flex items-center gap-2 shadow-xl opacity-90">
                                 <svg className="animate-spin h-3.5 w-3.5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                <span className="text-[12px] text-gray-300 font-medium">Updating...</span>
+                                <span className="text-[12px] text-gray-700 dark:text-gray-300 font-medium">Updating...</span>
                             </div>
                         )}
 
@@ -315,14 +354,14 @@
                                         tabIndex={0}
                                         onClick={() => playVideo(video.id)} 
                                         onKeyDown={(e) => { if (e.key === 'Enter') playVideo(video.id) }}
-                                        className="cursor-pointer group focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-8 focus:ring-offset-[#0f0f0f] rounded-xl flex flex-col items-start relative transition"
+                                        className="cursor-pointer group focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-4 focus:ring-offset-white dark:focus:ring-offset-[#0f0f0f] rounded-xl flex flex-col items-start relative transition"
                                     >
                                         {/* Classic YouTube Thumbnail Render Layer */}
-                                        <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-3 bg-[#181818] flex items-center justify-center group-hover:rounded-none transition-all duration-300">
+                                        <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-3 bg-[#e5e5e5] dark:bg-[#181818] flex items-center justify-center group-hover:rounded-none transition-all duration-300">
                                             {video.thumb ? (
                                                 <img src={video.thumb} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             ) : (
-                                                <div className="flex flex-col items-center opacity-30">
+                                                <div className="flex flex-col items-center opacity-30 text-[#0f0f0f] dark:text-white">
                                                     <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                 </div>
                                             )}
@@ -330,14 +369,14 @@
                                         {/* Details Panel */}
                                         <div className="flex items-start gap-3 pl-1 pr-4 w-full">
                                             {video.avatar ? (
-                                                <img src={video.avatar} className="w-9 h-9 rounded-full bg-[#181818] object-cover flex-shrink-0 mt-0.5" />
+                                                <img src={video.avatar} className="w-9 h-9 rounded-full bg-[#e5e5e5] dark:bg-[#181818] object-cover flex-shrink-0 mt-0.5" />
                                             ) : (
-                                                <div className="w-9 h-9 rounded-full bg-[#181818] flex-shrink-0 mt-0.5"></div>
+                                                <div className="w-9 h-9 rounded-full bg-[#e5e5e5] dark:bg-[#181818] flex-shrink-0 mt-0.5"></div>
                                             )}
                                             <div className="flex flex-col overflow-hidden">
-                                                <h3 className="text-[16px] font-semibold text-[#f1f1f1] leading-[1.4] line-clamp-2 mb-1">{video.title}</h3>
-                                                <p className="text-[14px] text-[#aaaaaa] font-medium hover:text-white transition">{video.uploader}</p>
-                                                <p className="text-[14px] text-[#aaaaaa] mt-0.5 flex items-center gap-1 line-clamp-1">
+                                                <h3 className="text-[16px] font-semibold text-[#0f0f0f] dark:text-[#f1f1f1] leading-[1.4] line-clamp-2 mb-1">{video.title}</h3>
+                                                <p className="text-[14px] text-[#606060] dark:text-[#aaaaaa] font-medium hover:text-black dark:hover:text-white transition">{video.uploader}</p>
+                                                <p className="text-[14px] text-[#606060] dark:text-[#aaaaaa] mt-0.5 flex items-center gap-1 line-clamp-1">
                                                     {video.views} <span className="text-[10px] opacity-70">•</span> {video.time}
                                                 </p>
                                             </div>
