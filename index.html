@@ -92,7 +92,6 @@
                     return cached ? JSON.parse(cached) : [];
                 } catch { return []; }
             });
-            });
             const [isLoading, setIsLoading] = useState(false);
             const [isAppending, setIsAppending] = useState(false);
             const [activeId, setActiveId] = useState(null);
@@ -354,6 +353,7 @@
                                     </select>
                                 </div>
                             </form>
+                        </div>
                         
                         {/* Search History PWA Chips */}
                         {searchHistory.length > 0 && !activeId && (
